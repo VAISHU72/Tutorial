@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SwiftCart | Ultra-Fast Delivery</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-green: #0c831f;
+            --accent-green: #15ab2c;
+            --soft-bg: #f8fafc;
+            --glass: rgba(255, 255, 255, 0.8);
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--soft-bg);
+            padding-top: 100px;
+            color: #1a1a1a;
+        }
+
+        /* Glassmorphism Navbar */
+        .navbar {
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+        }
+
+        .search-bar {
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            transition: all 0.3s ease;
+        }
+        .search-bar:focus-within {
+            border-color: var(--primary-green);
+            box-shadow: 0 0 0 4px rgba(12, 131, 31, 0.1);
+        }
+
+        /* Category Chips */
+        .category-scroll {
+            display: flex;
+            overflow-x: auto;
+            gap: 12px;
+            padding: 20px 0;
+            scrollbar-width: none;
+        }
+        .category-scroll::-webkit-scrollbar { display: none; }
+        
+        .cat-card {
+            background: #fff;
+            padding: 10px 22px;
+            border-radius: 12px;
+            border: 1px solid #edf2f7;
+            cursor: pointer;
+            transition: 0.3s;
+            font-weight: 500;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+        .cat-card.active {
+            background: var(--primary-green);
+            color: #fff;
+            transform: scale(1.05);
+        }
+
+        /* Hero Banner */
+        .hero-banner {
+            background: linear-gradient(135deg, #064e3b 0%, #059669 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        .hero-banner::after {
+            content: '';
+            position: absolute;
+            right: -50px;
+            bottom: -50px;
+            width: 300px;
+            height: 300px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+        }
+
+        /* Enhanced Product Cards */
+        .product-card {
+            background: #fff;
+            border-radius: 20px;
+            padding: 15px;
+            border: 1px solid transparent;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            height: 100%;
+        }
+        .product-card:hover {
+            border-color: #e2e8f0;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.05);
+            transform: translateY(-10px);
+        }
+        
+        .img-container {
+            border-radius: 15px;
+            overflow: hidden;
+            background: #f1f5f9;
+            aspect-ratio: 1/1;
+        }
+        .img-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: 0.5s;
+        }
+        .product-card:hover .img-container img { transform: scale(1.1); }
+        
+        .add-btn {
+            background: #fff;
+            color: var(--primary-green);
+            border: 1px solid var(--primary-green);
+            font-weight: 700;
+            border-radius: 10px;
+            padding: 8px 15px;
+            transition: 0.3s;
+        }
+        .add-btn:hover {
+            background: var(--primary-green);
+            color: #fff;
+        }
+
+        /* Floating Cart Strip */
+        #cart-strip {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--primary-green);
+            color: white;
+            padding: 16px 30px;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(12, 131, 31, 0.3);
+            z-index: 1000;
+            min-width: 350px;
+            transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        #cart-strip.visible { transform: translateX(-50%) translateY(0); }
+
+        .cart-badge-nav {
+            background: #ff3366;
+            font-size: 10px;
+            padding: 2px 6px;
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg fixed-top">
+        <div class="container">
+            <a class="navbar-brand fw-800 text-success fs-2" href="#" style="letter-spacing: -1px;">SWIFT<span class="text-dark">CART</span></a>
+            
+            <div class="mx-auto d-flex flex-grow-1 justify-content-center px-lg-5">
+                <div class="input-group search-bar">
+                    <span class="input-group-text border-0 bg-transparent text-muted"><i class="fas fa-search"></i></span>
+                    <input type="text" id="searchInput" class="form-control border-0 bg-transparent" placeholder="Search chocolate, milk, bread...">
+                </div>
+            </div>
+
+            <div class="d-flex align-items-center gap-4">
+                <button class="btn btn-dark px-4 rounded-pill position-relative" onclick="viewCart()">
+                    <i class="fas fa-shopping-basket me-2"></i>
+                    <span class="d-none d-md-inline">Cart</span>
+                    <span id="navCartCount" class="position-absolute top-0 start-100 translate-middle badge rounded-pill cart-badge-nav">0</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="category-scroll mt-2" id="categoryTabs">
+            <div class="cat-card active" data-cat="All">All Items</div>
+            <div class="cat-card" data-cat="Dairy">Dairy & Bread</div>
+            <div class="cat-card" data-cat="Fruits">Fresh Fruits</div>
+            <div class="cat-card" data-cat="Snacks">Snacks</div>
+            <div class="cat-card" data-cat="Beverages">Beverages</div>
+        </div>
+
+        <div class="row mt-3">
+            <div class="col-12">
+                <div class="hero-banner rounded-5 p-5 text-white">
+                    <div class="row align-items-center">
+                        <div class="col-md-7">
+                            <span class="badge bg-warning text-dark mb-3 fw-bold">FASTEST DELIVERY</span>
+                            <h1 class="fw-bold display-4 mb-3">Freshness in <span class="text-warning">9 Mins</span></h1>
+                            <p class="fs-5 opacity-75">Your neighborhood grocery store, now just a click away.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <h4 class="fw-bold mt-5 mb-4" id="sectionLabel">Everything You Need</h4>
+        <div class="row g-4 pb-5" id="productGrid"></div>
+    </div>
+
+    <div id="cart-strip">
+        <div class="d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center gap-3">
+                <div class="bg-white text-success rounded-3 px-2 py-1 fw-bold" id="cartCount">0</div>
+                <div>
+                    <div class="small opacity-75 text-uppercase" style="font-size: 10px;">Total Amount</div>
+                    <span class="fw-bold fs-5">₹<span id="cartTotal">0</span></span>
+                </div>
+            </div>
+            <button class="btn btn-link text-white text-decoration-none fw-bold" onclick="viewCart()">
+                View Cart <i class="fas fa-arrow-right ms-2"></i>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const allProducts = [
+            { id: 1, cat: "Dairy", name: "Organic Whole Milk", weight: "1 L", price: 68, img: "https://images.unsplash.com/photo-1550583724-12770d88a04b?auto=format&fit=crop&q=80&w=400" },
+            { id: 2, cat: "Dairy", name: "Artisan Sourdough", weight: "400 g", price: 120, img: "https://images.unsplash.com/photo-1585478259715-876acc5be8eb?auto=format&fit=crop&q=80&w=400" },
+            { id: 3, cat: "Fruits", name: "Granny Smith Apples", weight: "4 pcs", price: 150, img: "https://images.unsplash.com/photo-1619546813926-a78fa6372cd2?auto=format&fit=crop&q=80&w=400" },
+            { id: 4, cat: "Snacks", name: "Classic Salted Chips", weight: "150 g", price: 40, img: "https://images.unsplash.com/photo-1566478989037-eec170784d0b?auto=format&fit=crop&q=80&w=400" },
+            { id: 5, cat: "Beverages", name: "Sparkling Lemonade", weight: "300 ml", price: 55, img: "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?auto=format&fit=crop&q=80&w=400" },
+            { id: 6, cat: "Fruits", name: "California Grapes", weight: "500 g", price: 180, img: "https://images.unsplash.com/photo-1537640538966-79f369143f8f?auto=format&fit=crop&q=80&w=400" },
+            { id: 7, cat: "Snacks", name: "Premium Almonds", weight: "100 g", price: 210, img: "https://images.unsplash.com/photo-1508061253366-f7da158b6d46?auto=format&fit=crop&q=80&w=400" },
+            { id: 8, cat: "Beverages", name: "Cold Brew Coffee", weight: "250 ml", price: 145, img: "https://images.unsplash.com/photo-1517701604599-bb29b565090c?auto=format&fit=crop&q=80&w=400" },
+            { id: 10, cat: "Fruits", name: "Organic Bananas", weight: "6 pcs", price: 45, img: "https://images.unsplash.com/photo-1603833665858-e61d17a86224?auto=format&fit=crop&q=80&w=400" }
+        ];
+
+        let cart = [];
+
+        function renderGrid(products) {
+            const grid = document.getElementById('productGrid');
+            grid.innerHTML = products.map(p => `
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="product-card">
+                        <div class="img-container">
+                            <img src="${p.img}" alt="${p.name}">
+                        </div>
+                        <div class="mt-3">
+                            <span class="badge bg-light text-success border-0 mb-1" style="font-size: 10px;">
+                                <i class="fas fa-bolt me-1"></i> 9 MINS
+                            </span>
+                            <h6 class="fw-bold mb-1 text-truncate">${p.name}</h6>
+                            <p class="text-muted small mb-3">${p.weight}</p>
+                            <div class="d-flex justify-content-between align-items-center mt-auto">
+                                <span class="fw-bold fs-6">₹${p.price}</span>
+                                <button class="btn add-btn" onclick="addToCart(${p.id})">ADD</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function addToCart(id) {
+            const item = allProducts.find(p => p.id === id);
+            cart.push(item);
+            updateCartUI();
+        }
+
+        function updateCartUI() {
+            const strip = document.getElementById('cart-strip');
+            const total = cart.reduce((sum, item) => sum + item.price, 0);
+            
+            // Update counts
+            document.getElementById('cartCount').innerText = cart.length;
+            document.getElementById('navCartCount').innerText = cart.length;
+            document.getElementById('cartTotal').innerText = total;
+
+            // Show strip with animation
+            if(cart.length > 0) {
+                strip.classList.add('visible');
+            }
+        }
+
+        function viewCart() {
+            if(cart.length === 0) {
+                alert("Your cart is empty! Add some treats first.");
+            } else {
+                alert(`Order Summary: ${cart.length} items. Total: ₹${document.getElementById('cartTotal').innerText}`);
+            }
+        }
+
+        // Search Logic
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            const filtered = allProducts.filter(p => 
+                p.name.toLowerCase().includes(term) || p.cat.toLowerCase().includes(term)
+            );
+            renderGrid(filtered);
+        });
+
+        // Category Filtering
+        document.querySelectorAll('.cat-card').forEach(card => {
+            card.addEventListener('click', function() {
+                document.querySelectorAll('.cat-card').forEach(c => c.classList.remove('active'));
+                this.classList.add('active');
+                
+                const cat = this.dataset.cat;
+                const filtered = cat === 'All' ? allProducts : allProducts.filter(p => p.cat === cat);
+                document.getElementById('sectionLabel').innerText = cat === 'All' ? "Everything You Need" : `Best of ${cat}`;
+                renderGrid(filtered);
+            });
+        });
+
+        window.onload = () => renderGrid(allProducts);
+    </script>
+</body>
+</html>
